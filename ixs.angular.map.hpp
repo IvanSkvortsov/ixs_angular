@@ -8,12 +8,11 @@
 #endif
 
 ixs_angular_map::ixs_angular_map() : memory_map(), memorystream(), _lmax(),
-	_M_lmax(), _M_map(), _M_map_lmb(), _M_map_nx2(), _M_node(), _M_mxang(){}
+	_M_lmax(), _M_mappos(), _M_map_lmb(), _M_map_nx2(), _M_node(){}
 
 ixs_angular_map::ixs_angular_map(ixs_angular_map const & v) : memory_map(), memorystream(v), _lmax(v._lmax),
-	_M_lmax(v._M_lmax), _M_map(v._M_map), _M_map_lmb(v._M_map_lmb), _M_map_nx2(v._M_map_nx2), _M_node(v._M_node), _M_mxang(v._M_mxang){}
+	_M_lmax(v._M_lmax), _M_mappos(v._M_mappos), _M_map_lmb(v._M_map_lmb), _M_map_nx2(v._M_map_nx2), _M_node(v._M_node) {}
 
-template<typename T, typename U>
 ixs_angular_map & ixs_angular_map::operator=(ixs_angular_map const & v)
 {
 	if( this == &v )
@@ -69,9 +68,9 @@ const typename ixs_angular_map::size_type ixs_angular_map::write_map()
 	*this->_M_lmax = this->_lmax;
 	ms.seek( sizeof(_lmax_struct), seek_dir::cur );
 
-	this->_M_mapping_t = (mapping_enum *)ms.getcur();
+	this->_M_mapping_t = (mapping_struct *)ms.getcur();
 	*this->_M_mapping_t = this->_mapping_t;
-	ms.seek( sizeof(mapping_enum), seek_dir::cur );
+	ms.seek( sizeof(mapping_struct), seek_dir::cur );
 
 	this->_M_mappos = (_mappos_struct *)ms.getcur();
 	ms.seek( sizeof(_mappos_struct), seek_dir::cur );
@@ -81,7 +80,6 @@ const typename ixs_angular_map::size_type ixs_angular_map::write_map()
 		matrix_cursor_2<_min1_struct> * _map_lmb;
 		matrix_cursor_3<_pos1_struct> * _node;
 		matrix_cursor_3<int> * _map_nx2;
-		matrix_cursor_1<T> * _mxang;
 	} __cnvrt;
 
 	__cnvrt._void = ms.getcur();
@@ -119,9 +117,9 @@ const typename ixs_angular_map::size_type ixs_angular_map::read_map()
 	this->_lmax = *this->_M_lmax;
 	ms.seek( sizeof(_lmax_struct), seek_dir::cur );
 
-	this->_M_mapping_t = (mapping_enum *)ms.getcur();
-	this->_mapping_t = *this->_M_mapping_t;
-	ms.seek( sizeof(mapping_enum), seek_dir::cur );
+	this->_M_mapping_t = (mapping_struct *)ms.getcur();
+	this->mapping_struct::operator=( *this->_M_mapping_t );
+	ms.seek( sizeof(mapping_struct), seek_dir::cur );
 
 	this->_M_mappos = (_mappos_struct *)ms.getcur();
 	ms.seek( sizeof(_mappos_struct), seek_dir::cur );
@@ -131,7 +129,6 @@ const typename ixs_angular_map::size_type ixs_angular_map::read_map()
 		matrix_cursor_2<_min1_struct> * _map_lmb;
 		matrix_cursor_3<_pos1_struct> * _node;
 		matrix_cursor_3<int> * _map_nx2;
-		matrix_cursor_1<T> * _mxang;
 	} __cnvrt;
 
 	__cnvrt._void = ms.getcur();
@@ -149,7 +146,7 @@ const typename ixs_angular_map::size_type ixs_angular_map::read_map()
 	return ms.tell() - _seek_start;
 }
 
-const typename ixs_angular_map::size_type comp_size()const
+const typename ixs_angular_map::size_type ixs_angular_map::comp_size()const
 {
 	size_type __size = 0;
 	__size += sizeof(_lmax_struct);
@@ -161,21 +158,21 @@ const typename ixs_angular_map::size_type comp_size()const
 	__size += this->comp_node_size();
 	return __size;
 }
-const typename ixs_angular_map::size_type comp_lmb_size()const
+const typename ixs_angular_map::size_type ixs_angular_map::comp_lmb_size()const
 {
 	size_type __size = 0;
 	__size += sizeof(size_struct<2>);
 	__size += sizeof(_min1_struct) * this->map_lmb_N() * this->map_lmb_M();
 	return __size;
 }
-const typename ixs_angular_map::size_type comp_nx2_size()const
+const typename ixs_angular_map::size_type ixs_angular_map::comp_nx2_size()const
 {
 	size_type __size = 0;
 	__size += sizeof(size_struct<3>);
 	__size += sizeof(int) * this->map_nx2_N() * this->map_nx2_M() * this->map_nx2_P();
 	return __size;
 }
-const typename ixs_angular_map::size_type comp_node_size()const
+const typename ixs_angular_map::size_type ixs_angular_map::comp_node_size()const
 {
 	size_type __size = 0;
 	__size += sizeof(size_struct<3>);
@@ -241,9 +238,9 @@ void ixs_angular_map::init_node_min( size_type & __pos, const int & la, const in
 	// semi-local
 	for(int l = la%2; l < this->l_max(); l += 2 )
 	{
-		this->mx3node_set_l( l );
-		this->mx3node_pos() = __pos++;
-		this->mx3node_size() = 1;
+		this->map3node_set_l( l );
+		this->map3node_pos() = __pos++;
+		this->map3node_size() = 1;
 	}
 	// local
 	// not need
@@ -254,7 +251,7 @@ void ixs_angular_map::init_node_mid( size_type & __pos, const int & la, const in
 	// semi-local
 	for(int l = lb%2; l < this->l_max(); l+=2 )
 	{
-		this->mx3node_set_l( l );
+		this->map3node_set_l( l );
 		this->map3nx2_set_l( l );
 		__size = 0;
 		for(int na = 0; na <= la; ++na )
@@ -263,11 +260,11 @@ void ixs_angular_map::init_node_mid( size_type & __pos, const int & la, const in
 			this->map3nx2_set_nb( lb );
 			__size += this->map3nx2();
 		}
-		this->mx3node_pos() = __pos;
-		this->mx3node_size() = __size;
+		this->map3node_pos() = __pos;
+		this->map3node_size() = __size;
 		__pos += __size;
 	}
-	this->mx3node_set_lmax();
+	this->map3node_set_lmax();
 	this->map3nx2_set_lmax();
 	__size = 0;
 	// local
@@ -277,9 +274,8 @@ void ixs_angular_map::init_node_mid( size_type & __pos, const int & la, const in
 		this->map3nx2_set_nb( lb );
 		__size += this->map3nx2();
 	}
-	__size *= alp_m.map2AB_size();
-	this->mx3node_pos() = __pos;
-	this->mx3node_size() = __size;
+	this->map3node_pos() = __pos;
+	this->map3node_size() = __size;
 	__pos += __size;
 }
 
@@ -289,7 +285,7 @@ void ixs_angular_map::init_node_max( size_type & __pos, const int & la, const in
 	// semi-local
 	for(int l = 0; l < this->l_max(); ++l )
 	{
-		this->mx3node_set_l( l );
+		this->map3node_set_l( l );
 		this->map3nx2_set_l( l );
 		__size = 0;
 		for(int na = 0; na <= la; ++na )
@@ -301,11 +297,11 @@ void ixs_angular_map::init_node_max( size_type & __pos, const int & la, const in
 				__size += this->map3nx2();
 			}
 		}
-		this->mx3node_pos() = __pos;
-		this->mx3node_size() = __size;
+		this->map3node_pos() = __pos;
+		this->map3node_size() = __size;
 		__pos += __size;
 	}
-	this->mx3node_set_lmax();
+	this->map3node_set_lmax();
 	this->map3nx2_set_lmax();
 	__size = 0;
 	// local
@@ -319,8 +315,8 @@ void ixs_angular_map::init_node_max( size_type & __pos, const int & la, const in
 		}
 	}
 	__size *= alp_m.map2AB_size();
-	this->mx3node_pos() = __pos;
-	this->mx3node_size() = __size;
+	this->map3node_pos() = __pos;
+	this->map3node_size() = __size;
 	__pos += __size;
 }
 
@@ -331,18 +327,18 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_max( alpha_
 	size_type __size, __pos = 0;
 	for(int la = 0, ila_size = 1; la <= this->la_max(); ++la, ila_size += (la + 1))
 	{
-		this->mx3node_set_la( la );
+		this->map3node_set_la( la );
 		alp_m.map2AB_set_la( la );
 		for(int i_la = 0; i_la < ila_size; ++i_la )
 		{
-			this->mx3node_set_ia( i_la );
+			this->map3node_set_ia( i_la );
 			for(int lb = 0, ilb_size = 1; lb <= this->lb_max(); ++lb, ilb_size += (lb + 1))
 			{
-				this->mx3node_set_lb( lb );
+				this->map3node_set_lb( lb );
 				alp_m.map2AB_set_lb( lb );
 				for(int i_lb = 0; i_lb < ilb_size; ++i_lb )
 				{
-					this->mx3node_set_ib( i_lb );
+					this->map3node_set_ib( i_lb );
 					this->init_node_max( __pos, la, lb, alp_m );
 				}
 			}
@@ -358,16 +354,16 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_mid()
 	size_type __size, __pos = 0;
 	for(int la = 0, ila_size = 1; la <= this->la_max(); ++la, ila_size += (la + 1))
 	{
-		this->mx3node_set_la( la );
+		this->map3node_set_la( la );
 		for(int i_la = 0; i_la < ila_size; ++i_la )
 		{
-			this->mx3node_set_ia( i_la );
+			this->map3node_set_ia( i_la );
 			for(int lb = 0, ilb_size = 1; lb <= this->lb_max(); ++lb, ilb_size += (lb + 1))
 			{
-				this->mx3node_set_lb( lb );
+				this->map3node_set_lb( lb );
 				for(int i_lb = 0; i_lb < ilb_size; ++i_lb )
 				{
-					this->mx3node_set_ib( i_lb );
+					this->map3node_set_ib( i_lb );
 					this->init_node_mid( __pos, la, lb );
 				}
 			}
@@ -382,18 +378,18 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_min()
 	size_type __size, __pos = 0;
 	for(int la = 0, ila_size = 1; la <= this->la_max(); ++la, ila_size += (la + 1))
 	{
-		this->mx3node_set_la( la );
+		this->map3node_set_la( la );
 		for(int i_la = 0; i_la < ila_size; ++i_la )
 		{
-			this->mx3node_set_ia( i_la );
+			this->map3node_set_ia( i_la );
 			for(int lb = 0, ilb_size = 1; lb <= this->lb_max(); ++lb, ilb_size += (lb + 1))
 			{
 				if( lb%2 != la%2 )
 					continue;
-				this->mx3node_set_lb( lb );
+				this->map3node_set_lb( lb );
 				for(int i_lb = 0; i_lb < ilb_size; ++i_lb )
 				{
-					this->mx3node_set_ib( i_lb );
+					this->map3node_set_ib( i_lb );
 					this->init_node_min( __pos, la, lb );
 				}
 			}

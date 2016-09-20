@@ -4,6 +4,7 @@
 #include"memorystream.h"
 #include"matrix.cursor.h"
 #include"mapping.t.h"
+#include"alpha.map.h"
 
 #define __IXS_ANGULAR_MAP_MAP2LMB( lmbX )\
 inline void map2##lmbX##_set_l( const size_type l ){ this->_map2##lmbX##_it_l = this->_M_map_lmb->data() + this->M_map_lmb_m() * l;}\
@@ -31,7 +32,6 @@ public:
 	typedef typename memorystream::pos_type pos_type;
 	typedef typename memorystream::off_type off_type;
 	typedef typename memorystream::seek_dir seek_dir;
-	typedef typename alpha_map::mapping_type mapping_type;
 
 	typedef typename size_struct<1>::size_type size_type;
 #pragma pack( push, 4 )
@@ -49,7 +49,7 @@ public:
 	} _min1_struct;
 	typedef struct
 	{
-		int _lmb, _nx2, _node0;
+		int _lmb, _nx2, _node;
 	} _mappos_struct;
 #pragma pack( pop )
 protected:
@@ -61,7 +61,7 @@ protected:
 
 	matrix_cursor_2<_min1_struct> * _M_map_lmb;
 	matrix_cursor_3<int> * _M_map_nx2;
-	matrix_cursor_3<_pos1_struct> * _M_node0;
+	matrix_cursor_3<_pos1_struct> * _M_node;
 
 	void init_node_min(size_type & __pos, const int & la, const int & lb);
 	void init_node_mid(size_type & __pos, const int & la, const int & lb);
@@ -77,6 +77,7 @@ public:
 	ixs_angular_map( ixs_angular_map const & v);
 	ixs_angular_map & operator=(ixs_angular_map const & v);
 	// READ, WRITE Interface
+	inline void sync_stream(){ this->memorystream::setbuf( this->memory_map::data(), this->memory_map::size() );}
 	// open, create
 	void memory_create( const char * file, int __flags = O_RDWR| O_TRUNC| O_CREAT, mode_type __mode = memory_map::MODE_644 );
 	void memory_open( const char * file, int __flags = O_RDONLY, mode_type __mode = memory_map::MODE_444 );
@@ -84,16 +85,17 @@ public:
 	const size_type write_map();
 	const size_type read_map();
 	// init
+	void init_map( alpha_map & alp_m );
 	void init_map_lmb();
 	void init_map_nx2();
-	void init_node_min();
-	void init_node_mid();
-	void init_node_max(alpha_map & alp_m);
+	const size_type init_node_min();
+	const size_type init_node_mid();
+	const size_type init_node_max(alpha_map & alp_m);
 	// comp_size
 	const size_type comp_size()const;
 	const size_type comp_lmb_size()const;
 	const size_type comp_nx2_size()const;
-	const size_type comp_node0_size()const;
+	const size_type comp_node_size()const;
 	// mxang_size
 	inline const size_type & mxang_size()const{ return this->_mxang_size;}
 	inline size_type & mxang_size(){ return this->_mxang_size;}
@@ -114,7 +116,7 @@ public:
 	inline const size_type map_nx2_M()const{return (this->_lmax._la_max + 1);}
 	inline const size_type map_nx2_P()const{return (this->_lmax._lb_max + 1);}
 
-	inline const size_type node0_N()const
+	inline const size_type node_N()const
 	{
 		size_type __size = this->_lmax._la_max + 1;
 		__size *= (this->_lmax._la_max + 2);
@@ -122,7 +124,7 @@ public:
 		__size /= 6;
 		return __size;
 	}
-	inline const size_type node0_M()const
+	inline const size_type node_M()const
 	{
 		size_type __size = this->_lmax._lb_max + 1;
 		__size *= (this->_lmax._lb_max + 2);
@@ -130,7 +132,7 @@ public:
 		__size /= 6;
 		return __size;
 	}
-	inline const size_type node0_P()const{return (this->_lmax._l_max + 1 + this->_lmax._lso_max);}
+	inline const size_type node_P()const{return (this->_lmax._l_max + 1 + this->_lmax._lso_max);}
 	
 	// USAGE Interface
 	// lmb
@@ -148,7 +150,7 @@ public:
 
 	// nx2
 	__IXS_ANGULAR_MAP_MX3( map_nx2, int );
-	inline void map3nx2_set_lmax(){ this->map3nx2_set_l( this->_M_lmax._l_max );}
+	inline void map3nx2_set_lmax(){ this->map3nx2_set_l( this->l_max() );}
 	inline void map3nx2_set_l( const size_type l){ this->_map3nx2_it_l = l * this->M_map_nx2_m();}
 	inline void map3nx2_set_na( const size_type na)
 	{
@@ -156,40 +158,40 @@ public:
 		this->_map3nx2_it_na *= this->M_map_nx2_p();
 	}
 	inline void map3nx2_set_nb( const size_type nb){ this->_map3nx2_it_nb = this->_M_map_nx2->data() + this->_map3nx2_it_na + nb;}
-	inline int & map2nx2(){return *this->_map3nx2_it_nb;}
-	inline int const & map2nx2()const{return *this->_map3nx2_it_nb;}
+	inline int & map3nx2(){return *this->_map3nx2_it_nb;}
+	inline int const & map3nx2()const{return *this->_map3nx2_it_nb;}
 	// node
 	__IXS_ANGULAR_MAP_MX3( node, _pos1_struct );
-	inline void mx3node_set_la( const size_type lx)
+	inline void map3node_set_la( const size_type lx)
 	{
-		this->_mx3node_it_la = lx * (lx + 1) * (lx + 2);
-		this->_mx3node_it_la /= 6;
+		this->_map3node_it_la = lx * (lx + 1) * (lx + 2);
+		this->_map3node_it_la /= 6;
 	}
-	inline void mx3node_set_ia( const size_type ix)
+	inline void map3node_set_ia( const size_type ix)
 	{
-		this->_mx3node_it_ia = this->_mx3node_it_la + ix;
-		this->_mx3node_it_ia *= this->M_mode_m();
+		this->_map3node_it_ia = this->_map3node_it_la + ix;
+		this->_map3node_it_ia *= this->M_node_m();
 	}
-	inline void mx3node_set_lb( const size_type lx)
+	inline void map3node_set_lb( const size_type lx)
 	{
-		this->_mx3node_it_lb = lx * (lx + 1) * (lx + 2);
-		this->_mx3node_it_lb /= 6;
-		this->_mx3node_it_lb += this->_mx3node_it_ia;
+		this->_map3node_it_lb = lx * (lx + 1) * (lx + 2);
+		this->_map3node_it_lb /= 6;
+		this->_map3node_it_lb += this->_map3node_it_ia;
 	}
-	inline void mx3node_set_ib( const size_type ix)
+	inline void map3node_set_ib( const size_type ix)
 	{
-		this->_mx3node_it_ib = this->_mx3node_it_lb + ix;
-		this->_mx3node_it_ib *= this->M_mode_p();
+		this->_map3node_it_ib = this->_map3node_it_lb + ix;
+		this->_map3node_it_ib *= this->M_node_p();
 	}
-	inline void mx3node_set_lmax(){ this->mx3node_set_l( this->_M_lmax->_l_max );}
-	inline void mx3node_set_l( const size_type l )
+	inline void map3node_set_lmax(){ this->map3node_set_l( this->l_max() );}
+	inline void map3node_set_l( const size_type l )
 	{
-		this->_mx3node_it_l = this->_M_node->data() + this->_mx3node_it_ib + l;
+		this->_map3node_it_l = this->_M_node->data() + this->_map3node_it_ib + l;
 	}
-	inline int & mx3node_pos (){ return this->_mx3node_it_l->_pos;}
-	inline int & mx3node_size(){ return this->_mx3node_it_l->_size;}
-	inline int const & mx3node_pos ()const{ return this->_mx3node_it_l->_pos;}
-	inline int const & mx3node_size()const{ return this->_mx3node_it_l->_size;}
+	inline int & map3node_pos (){ return this->_map3node_it_l->_pos;}
+	inline int & map3node_size(){ return this->_map3node_it_l->_size;}
+	inline int const & map3node_pos ()const{ return this->_map3node_it_l->_pos;}
+	inline int const & map3node_size()const{ return this->_map3node_it_l->_size;}
 };
 
 #endif//__IXS_ANGULAR_MAP_H__
