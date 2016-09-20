@@ -6,6 +6,11 @@
 #include"mapping.t.h"
 #include"alpha.map.h"
 
+#define __IXS_ANGULAR_MAP_DEBUG
+#ifdef  __IXS_ANGULAR_MAP_DEBUG
+  #include<cassert>
+#endif
+
 #define __IXS_ANGULAR_MAP_MAP2LMB( lmbX )\
 inline void map2##lmbX##_set_l( const size_type l ){ this->_map2##lmbX##_it_l = this->_M_map_lmb->data() + this->M_map_lmb_m() * l;}\
 inline void map2##lmbX##_set_nx( const size_type nx ){ this->_map2##lmbX##_it_nx = this->_map2##lmbX##_it_l + nx;}\
@@ -85,6 +90,7 @@ public:
 	const size_type write_map();
 	const size_type read_map();
 	// init
+	void init_map();
 	void init_map( alpha_map & alp_m );
 	void init_map_lmb();
 	void init_map_nx2();
@@ -186,7 +192,12 @@ public:
 	inline void map3node_set_lmax(){ this->map3node_set_l( this->l_max() );}
 	inline void map3node_set_l( const size_type l )
 	{
-		this->_map3node_it_l = this->_M_node->data() + this->_map3node_it_ib + l;
+		this->_map3node_it_l  = this->_M_node->data();
+		this->_map3node_it_l += this->_map3node_it_ib;
+		this->_map3node_it_l += l;
+#ifdef  __IXS_ANGULAR_MAP_DEBUG
+		assert( this->_map3node_it_l == this->_M_node->data( this->_map3node_it_ib + l ) );
+#endif
 	}
 	inline int & map3node_pos (){ return this->_map3node_it_l->_pos;}
 	inline int & map3node_size(){ return this->_map3node_it_l->_size;}

@@ -40,7 +40,10 @@ void ixs_angular_map::memory_create( const char * file, int __flags, mode_type _
 		exit(1);
 	}
 	this->sync_stream();
-	this->write_map();
+	size_type __written_size = this->write_map();
+#ifdef  __IXS_ANGULAR_MAP_DEBUG
+	assert( __size == __written_size );
+#endif
 }
 // memory_open
 void ixs_angular_map::memory_open( const char * file, int __flags, mode_type __mode )
@@ -57,7 +60,10 @@ void ixs_angular_map::memory_open( const char * file, int __flags, mode_type __m
 		exit(1);
 	}
 	this->sync_stream();
-	this->read_map();
+	size_type __read_size = this->read_map();
+#ifdef  __IXS_ANGULAR_MAP_DEBUG
+	assert( __read_size == this->comp_size()  );
+#endif
 }
 const typename ixs_angular_map::size_type ixs_angular_map::write_map()
 {
@@ -103,8 +109,17 @@ const typename ixs_angular_map::size_type ixs_angular_map::write_map()
 	this->_M_node->m() = this->node_M();
 	this->_M_node->p() = this->node_P();
 	this->_M_node->init_size();
-	ms.seek( sizeof(size_struct<3>) + sizeof(int)*this->_M_node->size(), seek_dir::cur );
+	ms.seek( sizeof(size_struct<3>) + sizeof(_pos1_struct)*this->_M_node->size(), seek_dir::cur );
 
+#ifdef  __IXS_ANGULAR_MAP_DEBUG
+	assert( this->_M_lmax != 0 );
+	assert( this->_M_mappos != 0 );
+	assert( this->_M_mapping_t != 0 );
+
+	assert( this->_M_map_lmb != 0 );
+	assert( this->_M_map_nx2 != 0 );
+	assert( this->_M_node != 0 );
+#endif
 	return ms.tell() - _seek_start;
 }
 
@@ -141,8 +156,17 @@ const typename ixs_angular_map::size_type ixs_angular_map::read_map()
 
 	__cnvrt._void = ms.getcur();
 	this->_M_node = __cnvrt._node;
-	ms.seek( sizeof(size_struct<3>) + sizeof(int)*this->_M_node->size(), seek_dir::cur );
+	ms.seek( sizeof(size_struct<3>) + sizeof(_pos1_struct)*this->_M_node->size(), seek_dir::cur );
 
+#ifdef  __IXS_ANGULAR_MAP_DEBUG
+	assert( this->_M_lmax != 0 );
+	assert( this->_M_mappos != 0 );
+	assert( this->_M_mapping_t != 0 );
+
+	assert( this->_M_map_lmb != 0 );
+	assert( this->_M_map_nx2 != 0 );
+	assert( this->_M_node != 0 );
+#endif
 	return ms.tell() - _seek_start;
 }
 
@@ -176,7 +200,7 @@ const typename ixs_angular_map::size_type ixs_angular_map::comp_node_size()const
 {
 	size_type __size = 0;
 	__size += sizeof(size_struct<3>);
-	__size += sizeof(int) * this->node_N() * this->node_M() * this->node_P();
+	__size += sizeof(_pos1_struct) * this->node_N() * this->node_M() * this->node_P();
 	return __size;
 }
 
@@ -233,6 +257,9 @@ void ixs_angular_map::init_map_nx2()
 
 void ixs_angular_map::init_node_min( size_type & __pos, const int & la, const int & lb )
 {
+#ifdef  __IXS_ANGULAR_MAP_LOG
+	static int iter = 0, it = 0;
+#endif
 	if( la%2 != lb%2 )
 		return;
 	// semi-local
@@ -241,6 +268,16 @@ void ixs_angular_map::init_node_min( size_type & __pos, const int & la, const in
 		this->map3node_set_l( l );
 		this->map3node_pos() = __pos++;
 		this->map3node_size() = 1;
+#ifdef  __IXS_ANGULAR_MAP_LOG
+		if( iter%100 == 0 )
+		{
+		std::clog << std::setw(8) << it << std::setw(14) << iter << "  [" << this->_map3node_it_l << "]" <<
+			std::setw(14) << this->_map3node_it_l - this->_M_node->data() <<
+			std::setw(14) << this->_M_node->size() << std::endl;
+		++it;
+		}
+		++iter;
+#endif
 	}
 	// local
 	// not need
@@ -397,6 +434,28 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_min()
 	}
 	this->_mxang_size = __pos;
 	return __pos;
+}
+
+void ixs_angular_map::init_map()
+{
+	this->init_map_lmb();
+	this->init_map_nx2();
+	switch( this->get_mapping() )
+	{
+	case minimum :
+		this->init_node_min();
+		break;
+	case middle  :
+		this->init_node_mid();
+		break;
+	case maximum :
+		this->error("init_map()", "this method doesn't support mapping 'maximum'");
+		exit(1);
+	default :
+		this->error("init_map", "unknowen mapping type");
+		std::cerr << "current mapping type : " << this->get_mapping() << std::endl;
+		exit(1);
+	}
 }
 
 void ixs_angular_map::init_map(alpha_map & alp_m)
