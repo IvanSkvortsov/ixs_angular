@@ -4,14 +4,20 @@
 #include"mapping.t.h"
 #include"matrix.slm.h"
 
+#define __GEOM_SLM_DEBUG
+#ifdef  __GEOM_SLM_DEBUG
+  #include<cassert>
+#endif
+
+
 // USAGE Interface
 #define __GEOM_SLM_CX_INTERFACE( CX )\
-inline reference CX##_x(int i){ this->_##CX.x[i];}\
-inline reference CX##_y(int i){ this->_##CX.y[i];}\
-inline reference CX##_z(int i){ this->_##CX.z[i];}\
-inline const_reference CX##_x(int i)const{ this->_##CX.x[i];}\
-inline const_reference CX##_y(int i)const{ this->_##CX.y[i];}\
-inline const_reference CX##_z(int i)const{ this->_##CX.z[i];}
+inline reference CX##_x(int i){ return this->_##CX.x[i];}\
+inline reference CX##_y(int i){ return  this->_##CX.y[i];}\
+inline reference CX##_z(int i){ return this->_##CX.z[i];}\
+inline const_reference CX##_x(int i)const{ return this->_##CX.x[i];}\
+inline const_reference CX##_y(int i)const{ return this->_##CX.y[i];}\
+inline const_reference CX##_z(int i)const{ return this->_##CX.z[i];}
 
 #define __GEOM_SLM_SLMKX_INTERFACE( slm_kX )\
 inline void slm_kX##_set_lx( int lx){ this->_##slm_kX##_it_lx = this->_##slm_kX + lx * lx + lx;}\
