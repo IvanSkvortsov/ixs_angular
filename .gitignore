@@ -35,3 +35,7 @@ audio
 
 # my files/dirs
 file.err
+ixs.angular.*inp
+*.map
+*.mmap
+get.work.time.h
