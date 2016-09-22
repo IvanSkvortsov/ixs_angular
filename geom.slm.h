@@ -3,12 +3,12 @@
 #include<vector>
 #include"mapping.t.h"
 #include"matrix.slm.h"
+#include"alpha.siz.h"
 
 #define __GEOM_SLM_DEBUG
 #ifdef  __GEOM_SLM_DEBUG
   #include<cassert>
 #endif
-
 
 // USAGE Interface
 #define __GEOM_SLM_CX_INTERFACE( CX )\
@@ -38,10 +38,7 @@ public:
 	typedef typename base_class::const_pointer const_pointer;
 	typedef typename base_class::size_type size_type;
 
-	typedef struct
-	{
-		int _l_max, _lso_max, _la_max, _lb_max;
-	} _lmax_struct;
+	typedef typename alpha_siz::_lmax_struct _lmax_struct;
 	typedef struct
 	{
 		pointer x, y, z;
@@ -94,9 +91,20 @@ public:
 	inline const int & kB_lsize()const{ return this->_lsize._kB_lsize;}
 
 	// USAGE Interface
+	// CX powers usage (e.i. CA):
+	// in order to power 'n' of CA.x, CA.y, CA.z:
+	//   %CA_x( n ); -- return value - is power 'n' of CA.x
+	//   %CA_y( n );
+	//   %CA_z( n );
 	__GEOM_SLM_CX_INTERFACE( CA );
 	__GEOM_SLM_CX_INTERFACE( CB );
 
+	// slm_kX usage (e.i. slm_kA):
+	// in order to get spherical values of ang.mom. 'lx', and projection 'm', there are 2 ways:
+	//    1.1 %slm_kA_set_lx( lx ); -- set ang.mom. 'lx'
+	//    1.2 %slm_kA( m ); -- get spherical with 'lx', 'm'
+	//
+	//    2.1 %slm_kA(lx, m); -- get it
 	__GEOM_SLM_SLMKX_INTERFACE( slm_kA );
 	__GEOM_SLM_SLMKX_INTERFACE( slm_kB );
 	// Total usage of this class:
