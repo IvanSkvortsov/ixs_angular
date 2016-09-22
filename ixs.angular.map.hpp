@@ -3,15 +3,11 @@
 #include"ixs.angular.map.h"
 #include<cstdlib>// exit
 #include<iomanip>// setw
-#ifdef  __IXS_ANGULAR_MAP_DEBUG
-  #include<cassert>
-#endif
 
-ixs_angular_map::ixs_angular_map() : memory_map(), memorystream(), _lmax(),
-	_M_lmax(), _M_mappos(), _M_map_lmb(), _M_map_nx2(), _M_node(){}
+ixs_angular_map::ixs_angular_map() : mapping_struct(), _lmax(), _M_lmax(), _M_map_lmb(), _M_map_nx2(), _M_node(){}
 
-ixs_angular_map::ixs_angular_map(ixs_angular_map const & v) : memory_map(), memorystream(v), _lmax(v._lmax),
-	_M_lmax(v._M_lmax), _M_mappos(v._M_mappos), _M_map_lmb(v._M_map_lmb), _M_map_nx2(v._M_map_nx2), _M_node(v._M_node) {}
+ixs_angular_map::ixs_angular_map(ixs_angular_map const & v) : mapping_struct(v), _lmax(v._lmax),
+	_M_lmax(v._M_lmax), _M_map_lmb(v._M_map_lmb), _M_map_nx2(v._M_map_nx2), _M_node(v._M_node) {}
 
 ixs_angular_map & ixs_angular_map::operator=(ixs_angular_map const & v)
 {
@@ -24,50 +20,8 @@ ixs_angular_map & ixs_angular_map::operator=(ixs_angular_map const & v)
 	return *this;
 }
 
-// memory_create
-void ixs_angular_map::memory_create( const char * file, int __flags, mode_type __mode )
+const typename ixs_angular_map::size_type ixs_angular_map::write_map( memorystream & ms )
 {
-	static const int _AUG_BYTES = 1024;
-	size_type __size = this->comp_size();
-	int _st = this->memory_map::create( file, __size + _AUG_BYTES, __flags, __mode );
-	if( _st )
-	{
-		this->error("memory_create", "from memory_map");
-		std::cerr << "file      '" << file << "'" << std::endl;
-		std::cerr << "  __size : " << std::setw(12) << __size << std::endl;
-		std::cerr << "map.size : " << std::setw(12) << this->size() << std::endl;
-		std::cerr << "map.data : [" << std::setw(12) << this->data() << "]" << std::endl;
-		exit(1);
-	}
-	this->sync_stream();
-	size_type __written_size = this->write_map();
-#ifdef  __IXS_ANGULAR_MAP_DEBUG
-	assert( __size == __written_size );
-#endif
-}
-// memory_open
-void ixs_angular_map::memory_open( const char * file, int __flags, mode_type __mode )
-{
-	if( this->data() || this->size() )
-		this->close();
-	int _st = this->memory_map::open( file, __flags, __mode );
-	if( _st )
-	{
-		this->error("memory_open", "from memory_map");
-		std::cerr << "file      '" << file << "'" << std::endl;
-		std::cerr << "map.size : " << std::setw(12) << this->size() << std::endl;
-		std::cerr << "map.data : [" << std::setw(12) << this->data() << "]" << std::endl;
-		exit(1);
-	}
-	this->sync_stream();
-	size_type __read_size = this->read_map();
-#ifdef  __IXS_ANGULAR_MAP_DEBUG
-	assert( __read_size == this->comp_size()  );
-#endif
-}
-const typename ixs_angular_map::size_type ixs_angular_map::write_map()
-{
-	memorystream & ms = *this;
 	size_type _seek_start = ms.tell();
 
 	this->_M_lmax = (_lmax_struct *)ms.getcur();
@@ -123,7 +77,7 @@ const typename ixs_angular_map::size_type ixs_angular_map::write_map()
 	return ms.tell() - _seek_start;
 }
 
-const typename ixs_angular_map::size_type ixs_angular_map::read_map()
+const typename ixs_angular_map::size_type ixs_angular_map::read_map( memorystream & ms )
 {
 	memorystream & ms = *this;
 	size_type _seek_start = ms.tell();
@@ -205,10 +159,10 @@ const typename ixs_angular_map::size_type ixs_angular_map::comp_node_size()const
 }
 
 // init
-// mx_lmb
+// map_lmb
 void ixs_angular_map::init_map_lmb()
 {
-	// 2d mx_lmb
+	// 2d map_lmb
 	for(int l = 0; l < this->l_max(); ++l )// n() = (l_max + lso_max + 1)
 	{
 		this->map2lmbA_set_l( l );
@@ -220,10 +174,10 @@ void ixs_angular_map::init_map_lmb()
 		}
 	}
 }
-// mx_nxn
+// map_nx2
 void ixs_angular_map::init_map_nx2()
 {
-	// 3d mx_nxn
+	// 3d map_nx2
 	for(int l = 0; l < this->l_max(); ++l )
 	{
 		this->map2lmbA_set_l( l );
@@ -286,7 +240,7 @@ void ixs_angular_map::init_node_mid( size_type & __pos, const int & la, const in
 {
 	size_type __size;
 	// semi-local
-	for(int l = lb%2; l < this->l_max(); l+=2 )
+	for(int l = lb%2; l < this->l_max() && l <= lb; l+=2 )
 	{
 		this->map3node_set_l( l );
 		this->map3nx2_set_l( l );
@@ -351,16 +305,16 @@ void ixs_angular_map::init_node_max( size_type & __pos, const int & la, const in
 			__size += this->map3nx2();
 		}
 	}
-	__size *= alp_m.map2AB_size();
-	this->map3node_pos() = __pos;
 	this->map3node_size() = __size;
+	this->map3node_pos() = __pos;
+	__size *= alp_m.map2AB_size();
 	__pos += __size;
 }
 
-// mx_big
+// node
 const typename ixs_angular_map::size_type ixs_angular_map::init_node_max( alpha_map & alp_m )
 {
-	// 3d mx_big
+	// 3d node
 	size_type __size, __pos = 0;
 	for(int la = 0, ila_size = 1; la <= this->la_max(); ++la, ila_size += (la + 1))
 	{
@@ -387,7 +341,7 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_max( alpha_
 
 const typename ixs_angular_map::size_type ixs_angular_map::init_node_mid()
 {
-	// 3d mx_big
+	// 3d node
 	size_type __size, __pos = 0;
 	for(int la = 0, ila_size = 1; la <= this->la_max(); ++la, ila_size += (la + 1))
 	{

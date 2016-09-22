@@ -1,6 +1,5 @@
 #ifndef __IXS_ANGULAR_MAP_H__
 #define __IXS_ANGULAR_MAP_H__
-#include"memory.map.h"
 #include"memorystream.h"
 #include"matrix.cursor.h"
 #include"mapping.t.h"
@@ -30,20 +29,16 @@ inline const mx3_value_type * M_##mx3##_data()const{return this->_M_##mx3->data(
 inline const int & lx_max()const{ return this->_M_lmax->_##lx_max;}\
 inline int & lx_max(){ return this->_M_lmax->_##lx_max;}
 
-struct ixs_angular_map : public memory_map, public memorystream, public mapping_struct
+struct ixs_angular_map : public mapping_struct
 {
 public:
-	typedef typename memory_map::mode_type mode_type;
 	typedef typename memorystream::pos_type pos_type;
 	typedef typename memorystream::off_type off_type;
 	typedef typename memorystream::seek_dir seek_dir;
 
 	typedef typename size_struct<1>::size_type size_type;
+	typedef typename alpha_siz::_lmax_struct _lmax_struct;
 #pragma pack( push, 4 )
-	typedef struct
-	{
-		int _l_max, _lso_max, _la_max, _lb_max;
-	} _lmax_struct;
 	typedef struct
 	{
 		int _pos, _size;
@@ -81,17 +76,12 @@ public:
 	ixs_angular_map();
 	ixs_angular_map( ixs_angular_map const & v);
 	ixs_angular_map & operator=(ixs_angular_map const & v);
-	// READ, WRITE Interface
-	inline void sync_stream(){ this->memorystream::setbuf( this->memory_map::data(), this->memory_map::size() );}
-	// open, create
-	void memory_create( const char * file, int __flags = O_RDWR| O_TRUNC| O_CREAT, mode_type __mode = memory_map::MODE_644 );
-	void memory_open( const char * file, int __flags = O_RDONLY, mode_type __mode = memory_map::MODE_444 );
 	// read, write
-	const size_type write_map();
-	const size_type read_map();
+	const size_type write_map( memorystream & ms );
+	const size_type read_map( memorystream & ms );
 	// init
-	void init_map();
-	void init_map( alpha_map & alp_m );
+	void init_map();// mid, max
+	void init_map( alpha_map & alp_m );// min
 	void init_map_lmb();
 	void init_map_nx2();
 	const size_type init_node_min();
