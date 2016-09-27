@@ -13,8 +13,6 @@ ixs_angular_map & ixs_angular_map::operator=(ixs_angular_map const & v)
 {
 	if( this == &v )
 		return *this;
-	if( this->data() || this->size() )
-		this->close();
 	ixs_angular_map tmp( v );
 	memcpy( this, &tmp, sizeof(*this) );
 	return *this;
@@ -79,7 +77,6 @@ const typename ixs_angular_map::size_type ixs_angular_map::write_map( memorystre
 
 const typename ixs_angular_map::size_type ixs_angular_map::read_map( memorystream & ms )
 {
-	memorystream & ms = *this;
 	size_type _seek_start = ms.tell();
 
 	this->_M_lmax = (_lmax_struct *)ms.getcur();
@@ -335,7 +332,7 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_max( alpha_
 			}
 		}
 	}
-	this->_mxang_size = __pos;
+	this->_mx1ang_size = __pos;
 	return __pos;
 }
 
@@ -360,7 +357,7 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_mid()
 			}
 		}
 	}
-	this->_mxang_size = __pos;
+	this->_mx1ang_size = __pos;
 	return __pos;
 }
 
@@ -386,7 +383,7 @@ const typename ixs_angular_map::size_type ixs_angular_map::init_node_min()
 			}
 		}
 	}
-	this->_mxang_size = __pos;
+	this->_mx1ang_size = __pos;
 	return __pos;
 }
 

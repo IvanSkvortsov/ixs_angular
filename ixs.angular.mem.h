@@ -10,6 +10,9 @@
 
 struct ixs_angular_mem : public memory_map, public memorystream, public ixs_angular_map
 {
+protected:
+	inline void error( const char * _method, const char _message[] = "nothing to do here" )const
+	{ std::cerr << "Error: [" << this << "] ixs_angular_mem::" << _method << ", " << _message << std::endl; }
 public:
 	typedef typename memorystream::pos_type pos_type;
 	typedef typename memorystream::off_type off_type;
@@ -30,6 +33,7 @@ public:
 		return *this;
 	}
 
+	inline void sync_stream(){ this->memorystream::setbuf( this->memory_map::data(), this->memory_map::size() ); }
 	inline void memory_create( const char * file, int __flags = O_RDWR| O_TRUNC| O_CREAT, mode_type __mode = memory_map::MODE_644 )
 	{
 		static const int _AUG_BYTES = 1024;
@@ -39,9 +43,9 @@ public:
 		{
 			this->error("memory_create", "from memory_map");
 			std::cerr << "file      '" << file << "'" << std::endl;
-			std::cerr << "  __size : " << std::setw(12) << __size << std::endl;
-			std::cerr << "map.size : " << std::setw(12) << this->size() << std::endl;
-			std::cerr << "map.data : [" << std::setw(12) << this->data() << "]" << std::endl;
+			std::cerr << "  __size : " << __size << std::endl;
+			std::cerr << "map.size : " << this->size() << std::endl;
+			std::cerr << "map.data : [" << this->data() << "]" << std::endl;
 			exit(1);
 		}
 		this->sync_stream();
@@ -60,8 +64,8 @@ public:
 		{
 			this->error("memory_open", "from memory_map");
 			std::cerr << "file      '" << file << "'" << std::endl;
-			std::cerr << "map.size : " << std::setw(12) << this->size() << std::endl;
-			std::cerr << "map.data : [" << std::setw(12) << this->data() << "]" << std::endl;
+			std::cerr << "map.size : " << this->size() << std::endl;
+			std::cerr << "map.data : [" << this->data() << "]" << std::endl;
 			exit(1);
 		}
 		this->sync_stream();

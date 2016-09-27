@@ -53,7 +53,7 @@ public:
 	} _mappos_struct;
 #pragma pack( pop )
 protected:
-	size_type _mxang_size;
+	size_type _mx1ang_size;
 	_lmax_struct _lmax;
 	_lmax_struct * _M_lmax;
 	_mappos_struct * _M_mappos;
@@ -66,6 +66,9 @@ protected:
 	void init_node_min(size_type & __pos, const int & la, const int & lb);
 	void init_node_mid(size_type & __pos, const int & la, const int & lb);
 	void init_node_max(size_type & __pos, const int & la, const int & lb, alpha_map & alp_m);
+
+	inline void error(char const * _method, const char _message[] = "nothing to do here" )const
+	{ std::cerr << "Error: [" << this << "] ixs_angular_map::" << _method << ", " << _message << std::endl;}
 private:
 	_min1_struct * _map2lmbA_it_l, * _map2lmbA_it_nx;
 	_min1_struct * _map2lmbB_it_l, * _map2lmbB_it_nx;
@@ -73,6 +76,15 @@ private:
 	int _map3node_it_la, _map3node_it_ia, _map3node_it_lb, _map3node_it_ib;
 	_pos1_struct * _map3node_it_l;
 public:
+	// Usage:
+	// creation
+	//   1. you should init %_lmax; e.i. %set_lmax; it is used in %comp_size methods
+	//   2. %write_map
+	//   3. %init_map() or %init_map( alpha_map & )
+	//   4. use it
+	// opening
+	//   1. %read_map
+	//   2. use it
 	ixs_angular_map();
 	ixs_angular_map( ixs_angular_map const & v);
 	ixs_angular_map & operator=(ixs_angular_map const & v);
@@ -80,8 +92,8 @@ public:
 	const size_type write_map( memorystream & ms );
 	const size_type read_map( memorystream & ms );
 	// init
-	void init_map();// mid, max
-	void init_map( alpha_map & alp_m );// min
+	void init_map();// min, mid
+	void init_map( alpha_map & alp_m );// max
 	void init_map_lmb();
 	void init_map_nx2();
 	const size_type init_node_min();
@@ -92,9 +104,9 @@ public:
 	const size_type comp_lmb_size()const;
 	const size_type comp_nx2_size()const;
 	const size_type comp_node_size()const;
-	// mxang_size
-	inline const size_type & mxang_size()const{ return this->_mxang_size;}
-	inline size_type & mxang_size(){ return this->_mxang_size;}
+	// mx1ang_size
+	inline const size_type & mx1ang_size()const{ return this->_mx1ang_size;}
+	inline size_type & mx1ang_size(){ return this->_mx1ang_size;}
 	// lmax interface
 	inline void set_lmax( _lmax_struct const & __lmax){ this->_lmax = __lmax;}
 	__LMAX_STRUCT_INTERFACE( l_max );

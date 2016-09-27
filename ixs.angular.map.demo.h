@@ -1,4 +1,4 @@
-#include"ixs.angular.map.h"
+#include"ixs.angular.mem.h"
 #include<iostream>
 #include<iomanip>
 #include<fstream>
@@ -45,7 +45,7 @@ int demo_ang_map(const char * file )
 	mapping_struct map_t;
 	map_t.set_mapping_max();
 
-	ixs_angular_map ixs_am;
+	ixs_angular_mem ixs_am;
 	ixs_am.set_lmax( _lmax );
 	ixs_am.set_mapping( map_t );
 
