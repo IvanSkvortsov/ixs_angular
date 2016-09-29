@@ -10,9 +10,15 @@
 #include"geom.slm.h"
 #include"alpha.slm.h"
 
-#define __IXS_ANGULAR_DATA_PRINT
-//#define __IXS_ANGULAR_DATA_SIZECHECK
-#define __IXS_ANGULAR_DATA_RADIALCHECK
+//#define __IXS_ANGULAR_DATA_PRINT
+#define __IXS_ANGULAR_DATA_SIZECHECK
+//#define __IXS_ANGULAR_DATA_RADIALCHECK
+
+#define __IXS_ANGULAR_DATA_DEBUG
+#ifdef  __IXS_ANGULAR_DATA_DEBUG
+  #include<cassert>
+#endif
+
 
 template<typename T, typename U>
 struct ixs_angular_dat: public memory_map, public memorystream, public ixs_angular_map
@@ -33,7 +39,7 @@ public:
 	} _lxyz_struct;
 	typedef struct
 	{
-		int na, nb, na_p_nb;
+		int na, nb, na_p_nb, lmbA, lmbB;
 	} _nx_struct;
 protected:
 	matrix_cursor_1<T> * _M_mx1ang;

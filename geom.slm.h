@@ -55,6 +55,8 @@ protected:
 	_lsize_struct _lsize;
 
 	void init_slmkX( T * __slm_kX, T * CX_x, T * CX_y, T * CX_z, const int lx_max, const int kx_lmax, T const * CX, matrix_slm<T> const & mx_slm);
+	inline void error( const char * _method, const char _message[] = "nothing to do here" )const
+	{ std::cerr << "Error: [" << this << "] geom_slm<T>::" << _method << ", " << _message << std::endl; }
 private:
 	pointer _slm_kA_it_lx, _slm_kB_it_lx;
 public:
@@ -64,6 +66,7 @@ public:
 
 	const size_type comp_size()const;
 	void write();
+	void init_geom(T const * CA, T const * CB, matrix_slm<T> const & __mx_slm );
 	void init(T const * CA, T const * CB, matrix_slm<T> const & __mx_slm );
 	void init(T const * CA, matrix_slm<T> const & __mx_slm );
 
@@ -128,11 +131,12 @@ public:
 	// then allocate memory and init pointers
 	// 2. %write() - memory allocation and pointers initialization
 	//
-	// caluclate powers and sphericals
+	// calculate powers and sphericals
 	// 3. calculate powers of CA_x, CA_y, CA_z; CB_x, ...; and values of spherical harmonics for kA/|kA| = -CA/|CA|, and kB/|kB| = -CB/|CB|
 	//   1. %init( CA, CB, mx_slm ); <-- for maximum mapping
 	//   2. %init( CA, mx_slm ); <-- for middle mapping
 	//   3. nothing for minimum mapping
+	//   0. %init_geom( CA, CB, mx_slm ); <-- for all ocasions
 	//
 	// 4. use it - 'USAGE Interface'
 };

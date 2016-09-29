@@ -163,11 +163,14 @@ void ixs_angular_map::init_map_lmb()
 	for(int l = 0; l < this->l_max(); ++l )// n() = (l_max + lso_max + 1)
 	{
 		this->map2lmbA_set_l( l );
-		for(int n = 0; n < this->M_map_lmb_m(); ++n )// m() = max( la_max + 1, lb_max + 1 )
+		for(int n = 0, __min; n < this->M_map_lmb_m(); ++n )// m() = max( la_max + 1, lb_max + 1 )
 		{
 			this->map2lmbA_set_nx( n );
-			this->map2lmbA_min() = (l - n < 0 ? (l + n)%2 : l - n);
-			this->map2lmbA_size() = (l + n - this->map2lmbA_min())/2 + 1;
+			__min = ((l < n) ? ((l + n)%2) : (l - n) );
+			this->map2lmbA_min() = __min;
+			this->map2lmbA_size() = (l + n - __min)/2 + 1;
+			//this->map2lmbA_min() = ((l < n) ? ((l + n)%2) : (l - n) );
+			//this->map2lmbA_size() = (l + n - this->map2lmbA_min())/2 + 1;
 		}
 	}
 }

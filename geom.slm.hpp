@@ -127,6 +127,25 @@ void geom_slm<T>::init( T const * CA, T const * CB, matrix_slm<T> const & mx_slm
 	this->init_slmkX( this->_slm_kB, this->_CB.x, this->_CB.y, this->_CB.z, this->lb_max(), this->kB_lsize()-1, CB, mx_slm );
 }
 
+template<typename T>
+void geom_slm<T>::init_geom( T const * CA, T const * CB, matrix_slm<T> const & mx_slm )
+{
+	switch( this->get_mapping() )
+	{
+	case minimum:
+		break;
+	case middle :
+		this->init( CA, mx_slm );
+		break;
+	case maximum:
+		this->init( CA, CB, mx_slm );
+		break;
+	default:
+		this->error("init_geom", "unknowen mapping type");
+		std::cerr << "current mapping type : " << this->get_mapping() << std::endl;
+		exit(1);
+	}
+}
 #define __GEOM_SLM_SPEC( type )\
 template class geom_slm<type>;\
 void comp_powers_of( type const & value, const int max_power, type * storage, type & u );\
